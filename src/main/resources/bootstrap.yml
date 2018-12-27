@@ -1,0 +1,21 @@
+eurekaUri: http://127.0.0.1
+eurekaPort: 8761
+server:
+  port: 60001
+spring:
+  application:
+    name: video-server-app #current service name to be used by the eureka server
+  cloud:
+    config:
+      uri: ${eurekaUri}:${eurekaPort}/
+      profile: native
+eureka: #tells about the Eureka server details and its refresh time
+  client:
+    serviceUrl:
+      defaultZone: ${eurekaUri}:${eurekaPort}/eureka/
+    healthcheck:
+      enabled: false
+  instance:
+    prefer-ip-address: true
+    leaseRenewalIntervalInSeconds: 1
+    leaseExpirationDurationInSeconds: 2

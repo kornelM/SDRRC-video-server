@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="StdOutAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>stdOut.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>stdOut.log-%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>1</maxHistory>
+        </rollingPolicy>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} |%thread| %m%n%ex{2}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="UdpAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>udp.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>udp.log-%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>1</maxHistory>
+        </rollingPolicy>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} |%thread| %m%n%ex{2}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="VideoStreamingAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>videoStreaming.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>videoStreaming.log-%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>1</maxHistory>
+        </rollingPolicy>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} |%thread| %m%n%ex{2}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="ErrorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>videoStreamingErrors.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>videoStreamingErrors.log-%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>1</maxHistory>
+        </rollingPolicy>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} |%thread| %m%n%ex{2}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} |%thread| %m%n%ex{2}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <logger name="VideoLogger" additivity="false">
+        <appender-ref ref="VideoStreamingAppender"/>
+        <appender-ref ref="StdOutAppender"/>
+        <appender-ref ref="ErrorAppender"/>
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
+    <logger name="UdpClient" additivity="false">
+        <appender-ref ref="UdpAppender"/>
+        <appender-ref ref="StdOutAppender"/>
+        <appender-ref ref="ErrorAppender"/>
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
+    <root>
+        <appender-ref ref="ErrorAppender"/>
+        <appender-ref ref="StdOutAppender"/>
+        <appender-ref ref="consoleAppender"/>
+    </root>
+
+</configuration>
