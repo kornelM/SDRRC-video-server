@@ -1,6 +1,6 @@
 package com.myapp.videoserver;
 
-import com.myapp.videoserver.server.UdpServer;
+import com.myapp.videoserver.communication.server.UdpServer;
 import org.opencv.core.Core;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,14 +14,7 @@ public class VideoServerApp {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         ConfigurableApplicationContext context = SpringApplication.run(VideoServerApp.class, args);
 
-        //todo uruchamiam wątek odbierania ramek
         UdpServer udpServer = context.getBean(UdpServer.class);
-//        VideoServer videoServer = context.getBean(VideoServer.class);
-
-        Thread udpServerThread = new Thread(udpServer);
-        udpServerThread.run();
-
-//        Thread myThread = new Thread(videoServer);
-//        myThread.run();
+        udpServer.receiveFrame();
     }
 }

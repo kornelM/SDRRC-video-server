@@ -1,6 +1,11 @@
-package com.myapp.videoserver.server;
+package com.myapp.videoserver.communication.server;
 
+import com.myapp.videoserver.transforming.ImageService;
 import lombok.Getter;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,12 +19,14 @@ import java.net.InetAddress;
 import java.net.SocketException;
 
 
-@Getter
 @Component
-public class UdpServer implements Runnable {
+@Getter
+public class UdpServer {
+
+    private static final int BUFFER_SIZE = 65535;
 
     private DatagramSocket socket;
-    private byte[] buf = new byte[65535];
+    private byte[] buf = new byte[BUFFER_SIZE];
 
     @Value("${video.server.port}")
     private Integer serverPort;
@@ -28,18 +35,25 @@ public class UdpServer implements Runnable {
     private String inetAddress;
 
     private InputStream inputStream;
+    private boolean isRunning;
+    private final ImageService imageService;
 
-    @PostConstruct
-    public void setAll() throws SocketException {
-        socket = new DatagramSocket(serverPort);
+
+    @Autowired
+    public UdpServer(ImageService imageService) throws SocketException {
+        this.imageService = imageService;
+        this.isRunning = true;
     }
 
-    @Override
-    public void run() {
-        boolean running = true;
-        System.out.println("Server is running");
 
-        while (running) {
+    @PostConstruct
+    public void setup() throws SocketException {
+        this.socket = new DatagramSocket(serverPort);
+    }
+
+    public void receiveFrame() {
+
+        while (isRunning) {
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             try {
                 socket.receive(packet);
@@ -51,27 +65,13 @@ public class UdpServer implements Runnable {
             int port = packet.getPort();
             packet = new DatagramPacket(buf, buf.length, address, port);
 
+            Mat mat = Imgcodecs.imdecode(new MatOfByte(packet.getData()), Imgcodecs.IMREAD_UNCHANGED);
+
             this.inputStream = new ByteArrayInputStream(packet.getData());
+            imageService.performLaneDetection(packet.getData());
             System.out.println(this.inputStream.toString());
 
         }
         socket.close();
-    }
-
-    public InputStream testMethod() {
-
-        DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
-
-        try {
-            socket.receive(datagramPacket);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        InetAddress inetAddress = datagramPacket.getAddress();
-        int port = datagramPacket.getPort();
-        datagramPacket = new DatagramPacket(buf, buf.length, inetAddress, port);
-
-        return new ByteArrayInputStream(datagramPacket.getData());
     }
 }
