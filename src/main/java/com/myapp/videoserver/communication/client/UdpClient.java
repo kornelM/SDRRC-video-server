@@ -59,7 +59,7 @@ public class UdpClient {
             socketGui.send(packetGui);
             return true;
         } catch (IOException e) {
-            LOGGER.error("Could not send packet to gui!", e);
+            LOGGER.error("Could not send packet to gui!", e.getCause());
             return false;
         }
     }
