@@ -29,7 +29,7 @@ public class UdpClient {
     @Value("${video.gui.port}")
     private Integer portGui;
 
-    @Value("${video.gui.inetAddress}")
+    @Value("${video.gui.address}")
     private String inetAddressGui;
 
     private final DatagramSocket socketGui;

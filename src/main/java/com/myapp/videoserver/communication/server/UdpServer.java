@@ -31,7 +31,7 @@ public class UdpServer {
     @Value("${video.server.port}")
     private Integer serverPort;
 
-    @Value("${video.client.inetAddress}")
+    @Value("${video.client.address}")
     private String inetAddress;
 
     private InputStream inputStream;
@@ -69,8 +69,6 @@ public class UdpServer {
 
             this.inputStream = new ByteArrayInputStream(packet.getData());
             imageService.performLaneDetection(packet.getData());
-            System.out.println(this.inputStream.toString());
-
         }
         socket.close();
     }
