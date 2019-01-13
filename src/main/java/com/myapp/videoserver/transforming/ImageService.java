@@ -1,6 +1,7 @@
 package com.myapp.videoserver.transforming;
 
 import com.myapp.videoserver.communication.client.UdpClient;
+import lombok.Setter;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -16,13 +17,16 @@ import org.springframework.stereotype.Service;
 import static org.opencv.imgproc.Imgproc.Canny;
 
 @Service
+@Setter
 public class ImageService {
 
     private final UdpClient udpClient;
+    private int threshold;
 
     @Autowired
     public ImageService(UdpClient udpClient) {
         this.udpClient = udpClient;
+        this.threshold = 150;
     }
 
     public void performLaneDetection(byte[] bytes) {
@@ -74,9 +78,9 @@ public class ImageService {
         Mat cdst = new Mat();
 
 
-        Imgproc.GaussianBlur(src, dst, new Size(25,25), 0.0);
+        Imgproc.GaussianBlur(src, dst, new Size(25, 25), 0.0);
         // Edge detection
-        Imgproc.Canny(src, dst, 150, 200, 3, false);
+        Imgproc.Canny(src, dst, threshold, threshold, 3, false);
 
         // Copy edges to the images that will display the results in BGR
 //        Imgproc.cvtColor(dst, cdst, Imgproc.COLOR_GRAY2BGR);
