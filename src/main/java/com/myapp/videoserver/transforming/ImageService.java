@@ -23,14 +23,24 @@ public class ImageService {
 
     private final UdpClient udpClient;
     private final ImageUtils imageUtils;
-    private int threshold;
+    private int thresholdBottom;
+    private int thresholdTop;
+    private double rho;
+    private double maxLineGap;
+    private double minLineLength;
+    private int houghLinesPThreshold;
 
     @Autowired
     public ImageService(UdpClient udpClient,
                         ImageUtils imageUtils) {
         this.udpClient = udpClient;
         this.imageUtils = imageUtils;
-        this.threshold = 150;
+        this.thresholdBottom = 50;
+        this.thresholdBottom = 150;
+        this.rho = 1.0;
+        this.maxLineGap = 5.0;
+        this.minLineLength = 40.0;
+        this.houghLinesPThreshold = 100;
     }
 
     public void performLaneDetection(byte[] bytes) {
@@ -49,19 +59,33 @@ public class ImageService {
 
         Imgproc.cvtColor(source, gray, COLOR_BGR2GRAY);
         Imgproc.GaussianBlur(gray, blur, new Size(5, 5), 0);
-        Imgproc.Canny(blur, canny, 50.0, 150);
+        Imgproc.Canny(blur, canny, thresholdBottom, thresholdTop);
 
+        source = regionOfInterest(canny);
         return regionOfInterest(canny);
+
+//        return applyHoughLinesP(source);
     }
 
     private Mat regionOfInterest(Mat source) {
         Mat faceMask = getZerosMask(source);
         MatOfPoint points = imageUtils.getPolygonMaskPoints(source);
-        Imgproc.fillConvexPoly(faceMask, points, new Scalar(255));
+        Imgproc.fillConvexPoly(faceMask, points, new Scalar(255)); //black color
 
         Mat maskedImage = new Mat();
         Core.bitwise_and(source, faceMask, maskedImage);
         return maskedImage;
+    }
+
+    private Mat applyHoughLinesP(Mat source) {
+        Mat lines = new Mat();
+//        Imgproc.HoughLinesP(source, lines, 1, Math.PI / 180, 1, 1, 20);
+        Imgproc.HoughLinesP(source, lines, rho, Math.PI / 180, houghLinesPThreshold, minLineLength, maxLineGap);
+        if (lines.rows() == 0 || lines.cols() == 0) {
+            System.out.println("Could not detect proper lines");
+            return source;
+        }
+        return lines;
     }
 
     private Mat getZerosMask(Mat source) {
