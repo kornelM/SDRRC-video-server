@@ -15,10 +15,15 @@ public class GuiController {
     @Autowired
     private ApplicationContext context;
 
-    @PutMapping(value = "/threshold")
-    public void updateThresholdValue(@RequestBody String threshold){
-        System.out.println(threshold);
+    @PutMapping(value = "/threshold/bottom")
+    public void updateThresholdBottomValue(@RequestBody String thresholdBottom){
         ImageService bean = context.getBean(ImageService.class);
-        bean.setThreshold(Integer.parseInt(threshold));
+        bean.setThresholdBottom(Integer.parseInt(thresholdBottom));
+    }
+
+    @PutMapping(value = "/threshold/top")
+    public void updateThresholdTopValue(@RequestBody String thresholdTop){
+        ImageService bean = context.getBean(ImageService.class);
+        bean.setThresholdBottom(Integer.parseInt(thresholdTop));
     }
 }
