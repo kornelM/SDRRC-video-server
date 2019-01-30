@@ -3,7 +3,6 @@ package com.myapp.videoserver.transforming;
 import com.myapp.videoserver.communication.client.UdpClient;
 import com.myapp.videoserver.utils.ImageUtils;
 import lombok.Setter;
-import org.apache.commons.lang.ArrayUtils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -17,7 +16,10 @@ import org.opencv.imgproc.Imgproc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY;
@@ -68,15 +70,18 @@ public class ImageService {
 
         source = regionOfInterest(canny);
 
-        Mat updatedLines = new Mat();
-        Mat lines = drawLine(applyHoughLinesP(source), source);
-        Core.addWeighted(lines, 0.8, lines, 1, 1, updatedLines);
+        //display lines
+        Mat applyHoughLinesPLines = applyHoughLinesP(source);
+        List<Mat> averageLines = averageLines(source, applyHoughLinesPLines);
+
+        Mat mergedMatWithLines = new Mat();
+        Core.add(averageLines.get(0), averageLines.get(1), mergedMatWithLines);
+
+        Mat toReturn = new Mat();
+        Core.addWeighted(source, 0.8, mergedMatWithLines, 1, 1, toReturn);
 
 
-        //todo
-        double[] smoothLines = averageLines(source, lines);
-
-        return updatedLines;
+        return toReturn;
     }
 
     private Mat regionOfInterest(Mat source) {
@@ -98,6 +103,7 @@ public class ImageService {
         return lines;
     }
 
+    //display_lines
     private Mat drawLine(Mat matAfterHoughLinesP, Mat source) {
         Mat lines = getZerosMask(source);
         double x1, y1, x2, y2;
@@ -108,7 +114,7 @@ public class ImageService {
                 y1 = table[1];
                 x2 = table[2];
                 y2 = table[3];
-                Imgproc.line(lines, new Point(x1, y1), new Point(x2, y2), new Scalar(100, 100, 100), 10);
+                Imgproc.line(lines, new Point(x1, y1), new Point(x2, y2), new Scalar(255), 10);
             }
         }
         return lines;
@@ -119,7 +125,7 @@ public class ImageService {
     }
 
     //todo should return Mat
-    private double[] averageLines(Mat source, Mat lines) {
+    private List<Mat> averageLines(Mat source, Mat lines) {
         HashMap<Double, Double> left = new HashMap<>();
         HashMap<Double, Double> right = new HashMap<>();
         double x1, y1, x2, y2;
@@ -140,14 +146,12 @@ public class ImageService {
                 } else {
                     right.put(slope, intercept);
                 }
-
-
             }
         }
         //todo average slope left/right, intercept left/right
         double leftSlopeAverage = left.entrySet()
                 .stream()
-                .mapToDouble(Map.Entry::getValue)
+                .mapToDouble(Map.Entry::getKey)
                 .average()
                 .getAsDouble();
 
@@ -161,7 +165,7 @@ public class ImageService {
 
         double rightSlopeAverage = right.entrySet()
                 .stream()
-                .mapToDouble(Map.Entry::getValue)
+                .mapToDouble(Map.Entry::getKey)
                 .average()
                 .getAsDouble();
 
@@ -173,14 +177,20 @@ public class ImageService {
 
         double[] rightFitAverage = new double[]{rightSlopeAverage, rightInterceptAverage};
 
-        double[] leftLine = makeCoordinates(source, leftFitAverage);
-        double[] rightLine = makeCoordinates(source, rightFitAverage);
+        System.out.println("Left: " + Arrays.toString(leftFitAverage));
+        System.out.println("Right: " + Arrays.toString(rightFitAverage));
 
-        return ArrayUtils.addAll(leftLine, rightLine);
+
+        Mat leftLine = makeCoordinates(getZerosMask(source), leftFitAverage);
+        Mat rightLine = makeCoordinates(getZerosMask(source), rightFitAverage);
+        List<Mat> listOfLines = new ArrayList<>();
+        listOfLines.add(leftLine);
+        listOfLines.add(rightLine);
+        return listOfLines;
     }
 
     //todo make coordinates
-    private double[] makeCoordinates(Mat source, double[] slopeAndIntercept) {
+    private Mat makeCoordinates(Mat source, double[] slopeAndIntercept) {
         double slope = slopeAndIntercept[0];
         double intercept = slopeAndIntercept[1];
 
@@ -189,15 +199,8 @@ public class ImageService {
         int x1 = (int) ((y1 - intercept) / slope);
         int x2 = (int) ((y2 - intercept) / slope);
 
-        return new double[]{x1, y1, x2, y2};
-
-    }
-
-    private double[] getSlopeAndIntercept(double x1, double x2, double y1, double y2) {
-        double slope = (y2 - y1) / (x2 - x1);
-        double interception = y2 - (slope * x2);
-
-        return new double[]{slope, interception};
+        Imgproc.line(source, new Point(x1, y1), new Point(x2, y2), new Scalar(255), 15);
+        return source;
     }
 
     private double slope(double x1, double y1, double x2, double y2) {
@@ -207,7 +210,4 @@ public class ImageService {
     private double interception(double x2, double y2, double slope) {
         return y2 - (slope * x2);
     }
-
 }
-
-
